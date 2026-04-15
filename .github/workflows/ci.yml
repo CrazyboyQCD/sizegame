@@ -489,9 +489,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
       - name: Summarize
         shell: cmd
         run: |
