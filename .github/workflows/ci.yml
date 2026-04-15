@@ -485,13 +485,17 @@ jobs:
 
   summarize:
     needs: [build_asm, build_c, build_cpp, build_crystal, build_csharp, build_d, build_dart, build_fsharp, build_go, build_haskell, build_java, build_kotlin, build_nim, build_rust, build_scala, build_swift, build_v, build_zig]
+    if: always()
     runs-on: windows-latest
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
+        with:
+          path: artifacts
       - name: Summarize
         shell: cmd
         run: |
+          cd artifacts
           (
           echo Language ^| Size ^(kB^) ^| Compiler ^| Notes
           echo -------- ^| ---- ^| -------- ^| -----
@@ -531,10 +535,16 @@ jobs:
           for %%f IN (%1\*.exe %1\*.dll) DO (
             set /A size=size + %%~zf
           )
+          if %size% EQU 0 (
+            echo Skipping %1 - no binary files found
+            goto :EOF
+          )
           set /A size=size / 1024
 
           set NOTES=
-          for /f "delims== tokens=1,2" %%G in (%1\info.txt) do set %%G=%%H
+          if exist %1\info.txt (
+            for /f "delims== tokens=1,2" %%G in (%1\info.txt) do set %%G=%%H
+          )
 
           echo %LANGUAGE%	%size% >> plotdata.txt
           echo %LANGUAGE% ^| %size% ^| %COMPILER% ^| %NOTES% >> report.md
